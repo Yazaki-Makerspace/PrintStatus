@@ -1,0 +1,58 @@
+[
+{
+"printer": "P1S-1",
+"status": "FINISH",
+"pct_progress": 0,
+"min_remaining": 0,
+"current_layer_num": 0,
+"total_layer_num": 0
+},
+{
+"printer": "P1S-2",
+"status": "FINISH",
+"pct_progress": 0,
+"min_remaining": 0,
+"current_layer_num": 0,
+"total_layer_num": 0
+},
+{
+"printer": "P1S-3",
+"status": "FINISH",
+"pct_progress": 0,
+"min_remaining": 0,
+"current_layer_num": 0,
+"total_layer_num": 0
+},
+{
+"printer": "P1S-4",
+"status": "FINISH",
+"pct_progress": 0,
+"min_remaining": 0,
+"current_layer_num": 0,
+"total_layer_num": 0
+},
+{
+"printer": "P1S-5",
+"status": "FINISH",
+"pct_progress": 0,
+"min_remaining": 0,
+"current_layer_num": 0,
+"total_layer_num": 0
+},
+{
+"printer": "P1S-6",
+"status": "FINISH",
+"pct_progress": 100,
+"min_remaining": 0,
+"current_layer_num": 0,
+"total_layer_num": 0
+},
+{
+"printer": "P1S-7",
+"status": "FINISH",
+"pct_progress": 100,
+"min_remaining": 0,
+"current_layer_num": 0,
+"total_layer_num": 0
+}
+]

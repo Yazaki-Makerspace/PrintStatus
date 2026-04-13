@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Bambu Printer Dashboard</title>
+
+        <style>
+            body {
+                font-family: system-ui, sans-serif;
+                background: #f5f5f5;
+            }
+
+            .printer-card {
+                background: white;
+                border-radius: 10px;
+                margin: 12px;
+                padding: 12px;
+                box-shadow: 0 2px 5px rgba(0,0,0,.1);
+            }
+
+            .row {
+                display: grid;
+                grid-template-columns: 120px 120px 1fr 150px 120px 150px 40px;
+                align-items: center;
+                gap: 10px;
+            }
+
+            .progress-bar {
+                background: #ddd;
+                border-radius: 6px;
+                overflow: hidden;
+                height: 14px;
+            }
+
+            .progress-fill {
+                background: #4caf50;
+                height: 100%;
+                transition: width .3s;
+            }
+
+            .details {
+                display: none;
+                grid-template-columns: 1fr 300px;
+                gap: 15px;
+                margin-top: 12px;
+            }
+
+            .details img {
+                width: 100%;
+                border-radius: 8px;
+            }
+
+            .toggle {
+                cursor: pointer;
+                font-size: 20px;
+            }
+        </style>
+    </head>
+
+    <body>
+
+        <h2 style="margin-left:12px;">Bambu Status</h2>
+        <div id="container"></div>
+
+        <script>
+            async function load() {
+                const res = await fetch("status.json?_=" + Date.now());
+                const printers = await res.json();
+                const c = document.getElementById("container");
+                c.innerHTML = "";
+
+                printers.slice(0,7).forEach((p, i) => {
+                    const progress = p.pct_progress / 100;
+                    const total = progress < 1 ? Math.round(p.min_remain / (1 - (progress))):100;
+                    const id = "d" + i;
+
+                    c.innerHTML += `
+                    <div class="printer-card">
+                        <div class="row">
+                            <b>${p.printer}</b>
+                            <span>${p.status}</span>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width:${p.pct_progress}%"></div>
+                            </div>
+                            <span>${p.pct_progress}%</span>
+                            <span>${p.min_remain} / ${total} min</span>
+                            <span>${p.current_layer_num}/${p.Total_layer_num}</span>
+                            <span class="toggle" onclick="toggle('${id}')">click</span>
+                        </div>
+
+                        <div class="details" id="${id}">
+                            <div>
+                                <div><b>Printer:</b> ${p.printer}</div>
+                                <div><b>Status:</b> ${p.status}</div>
+                                <div><b>Progress:</b> ${p.pct_progress}%</div>
+                                <div><b>Remaining:</b> ${p.min_remain} min</div>
+                                <div><b>Layers:</b> ${p.current_layer_num}/${p.Total_layer_num}</div>
+                            </div>
+                            <img src="printer${i+1}.png?_=$Date.now()}">
+                        </div>
+                    </div>`;
+                })
+            }
+
+            function toggle(id) {
+                const el = document.getElementById(id);
+                el.style.display = el.style.display === "grid" ? "none" : "grid";
+            }
+
+            setInterval(load, 5000); //Repeat loading json and images every 5 sec
+            load();
+        </script>
+    </body>
+</html>
