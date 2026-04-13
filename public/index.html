@@ -71,7 +71,7 @@
 
                 printers.slice(0,7).forEach((p, i) => {
                     const progress = p.pct_progress / 100;
-                    const total = progress < 1 ? Math.round(p.min_remain / (1 - (progress))):100;
+                    const total = progress < 1 ? Math.round(p.min_remaining / (1 - (progress))):100;
                     const id = "d" + i;
 
                     c.innerHTML += `
