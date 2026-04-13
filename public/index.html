@@ -83,7 +83,7 @@
                                 <div class="progress-fill" style="width:${p.pct_progress}%"></div>
                             </div>
                             <span>${p.pct_progress}%</span>
-                            <span>${p.min_remain} / ${total} min</span>
+                            <span>${p.min_remaining} / ${total} min</span>
                             <span>${p.current_layer_num}/${p.total_layer_num}</span>
                             <span class="toggle" onclick="toggle('${id}')">click</span>
                         </div>
@@ -93,7 +93,7 @@
                                 <div><b>Printer:</b> ${p.printer}</div>
                                 <div><b>Status:</b> ${p.status}</div>
                                 <div><b>Progress:</b> ${p.pct_progress}%</div>
-                                <div><b>Remaining:</b> ${p.min_remain} min</div>
+                                <div><b>Remaining:</b> ${p.min_remaining} min</div>
                                 <div><b>Layers:</b> ${p.current_layer_num}/${p.total_layer_num}</div>
                             </div>
                             <img src="printer${i+1}.png?_=$Date.now()}">
