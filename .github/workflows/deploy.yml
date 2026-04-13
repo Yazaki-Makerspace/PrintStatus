@@ -14,6 +14,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: Create build folder
         run: mkdir site
 
@@ -33,9 +36,6 @@ jobs:
         with:
           path: site
           retention-days: 1
-
-      # - name: Checkout repository
-      #   uses: actions/checkout@v4
 
       # - name: Configure Pages
       #   uses: actions/configure-pages@v5
