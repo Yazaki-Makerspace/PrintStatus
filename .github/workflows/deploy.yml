@@ -14,17 +14,37 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - name: Create build folder
+        run: mkdir site
 
-      - name: Configure Pages
+      - name: Generate status.json
+        run: |
+          echo '${{ toJson(github.event.client_payload.status) }}' > site/status.json
+
+      - name: Add frontend
+        run: |
+          cp public/index.html site/
+      
+      - name: Setup Pages
         uses: actions/configure-pages@v5
 
-      - name: Upload Pages artifact
+      - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: public
+          path: site
           retention-days: 1
+
+      # - name: Checkout repository
+      #   uses: actions/checkout@v4
+
+      # - name: Configure Pages
+      #   uses: actions/configure-pages@v5
+
+      # - name: Upload Pages artifact
+      #   uses: actions/upload-pages-artifact@v3
+      #   with:
+      #     path: public
+      #     retention-days: 1
 
       - name: Deploy to Github Pages
         uses: actions/deploy-pages@v4
