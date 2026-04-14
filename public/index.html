@@ -105,7 +105,7 @@
 
                 printers.slice(0,7).forEach((p, i) => {
                     const progress = p.pct_progress / 100;
-                    const total = progress < 1 ? Math.round(p.min_remaining / (1 - (progress))):100;
+                    const total = progress < 1 ? Math.round(p.min_remaining / (1 - (progress))):0;
                     const id = "d" + i;
 
                     c.innerHTML += `
@@ -139,7 +139,7 @@
                         document.getElementById(id).style.display = "grid";
                     }
                 });
-                
+
                 //If new data has been uploaded
                 lastData = dataStr;
                 return true;
