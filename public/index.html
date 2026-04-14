@@ -100,9 +100,6 @@
                 const dataStr = JSON.stringify(printers);
                 if (lastData === dataStr) return false; //No change. Data has not changed
 
-                //If new data has been uploaded
-                lastData = dataStr;
-
                 const c = document.getElementById("container");
                 c.innerHTML = "";
 
@@ -142,7 +139,9 @@
                         document.getElementById(id).style.display = "grid";
                     }
                 });
-
+                
+                //If new data has been uploaded
+                lastData = dataStr;
                 return true;
             }
 
