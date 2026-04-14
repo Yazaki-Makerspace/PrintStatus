@@ -63,9 +63,23 @@
         <div id="container"></div>
 
         <script>
+            let lastData = null;        //Store previous data for comparison to refresh on new data
+            let expandedCards = {};     //Track cards that were expanded
+            let refreshInterval = 60;   //Refresh every 60 seconds (+ time for github actions)
+            let countdown = refreshInterval;
+
+            //
             async function load() {
                 const res = await fetch("status.json?_=" + Date.now());
                 const printers = await res.json();
+
+                //Comparing new data with last updated data
+                const dataStr = JSON.stringify(printers);
+                if (lastData === dataStr) return false; //No change. Data has not changed
+
+                //If new data has been uploaded
+                lastData = dataStr;
+
                 const c = document.getElementById("container");
                 c.innerHTML = "";
 
@@ -77,6 +91,7 @@
                     c.innerHTML += `
                     <div class="printer-card">
                         <div class="row">
+                            <span class="toggle" onclick="toggle('${id}')">click</span>
                             <b>${p.printer}</b>
                             <span>${p.status}</span>
                             <div class="progress-bar">
@@ -85,7 +100,6 @@
                             <span>${p.pct_progress}%</span>
                             <span>${p.min_remaining} / ${total} min</span>
                             <span>${p.current_layer_num}/${p.total_layer_num}</span>
-                            <span class="toggle" onclick="toggle('${id}')">click</span>
                         </div>
 
                         <div class="details" id="${id}">
@@ -99,15 +113,38 @@
                             <img src="printer${i+1}.png?_=${Date.now()}">
                         </div>
                     </div>`;
-                })
+
+                    //Restore expanded cards
+                    if (expandedCards[id]) {
+                        document.getElementById(id).style.display = "grid";
+                    }
+                });
+
+                return true;
+            }
+
+            function tick() {
+                const timer = document.getElementById("refresh-timer");
+                countdown = countdown - 1;
+
+                if (countdown <= 0) {
+                    timer.textContent = "Checking for new data...";
+                    load().then(updated => {
+                        if (updated) countdown = refreshInterval; //Only reset if new data
+                    });
+                } else {
+                    timer.textContent = `Next refresh in ${countdown}s`;
+                }
             }
 
             function toggle(id) {
                 const el = document.getElementById(id);
                 el.style.display = el.style.display === "grid" ? "none" : "grid";
+                expandedCards[id] = el.style.display === "grid";
             }
 
-            setInterval(load, 5000); //Repeat loading json and images every 5 sec
+            setInterval(tick, 1000); //Repeat loading json and images every 5 sec
+            //Initial load
             load();
         </script>
     </body>
