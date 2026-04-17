@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
     <head>
         <meta charset="utf-8">
         <title>3D Lab Printer Status</title>
@@ -12,23 +12,104 @@
                 padding-bottom: 40px;
             }
 
+            h2 {
+                margin-left: 12px;
+                font-size: 24px;
+            }
+
             #container {
-                margin-bottom: 60px;
+                margin: 20px;
+            }
+
+            .status-section {
+                margin-bottom: 40px;
+            }
+
+            .status-section h3 {
+                padding: 15px;
+                text-transform: uppercase;
+                color: white;
+                font-size: 16px;
+                margin: 0;
+                cursor: pointer;
+            }
+
+            .idle h3 {
+                background-color: #666;
+            }
+
+            .running h3 {
+                background-color: green;
+            }
+
+            .paused h3 {
+                background-color: yellow;
+                color: black;
+            }
+
+            .fail h3 {
+                background-color: red;
+                color: white;
+            }
+
+            .finished h3 {
+                background-color: blue;
+                color: white;
+            }
+
+            .printer-row {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+                gap: 35px;
+                margin-top: 10px;
+                justify-items: stretch;
             }
 
             .printer-card {
+                display: flex;
+                align-items: center;
                 background: white;
                 border-radius: 10px;
-                margin: 12px;
-                padding: 12px;
-                box-shadow: 0 2px 5px rgba(0,0,0,.1);
+                margin: 20px 0;
+                padding: 20px;
+                box-shadow: 0 2px 10px rgba(0,0,0,.1);
+                border: 5px solid transparent;
+                transition: transform .3s ease-in-out;
+                min-width: 300px;
+                flex-wrap: wrap;
+            }
+            
+            .printer-card.idle {
+                border-color: #666;
             }
 
-            .row {
-                display: grid;
-                grid-template-columns: 120px 120px 1fr 150px 120px 150px 40px;
-                align-items: center;
-                gap: 10px;
+            .printer-card.running {
+                border-color: green;
+            }
+
+            .printer-card.paused {
+                border-color: yellow;
+            }
+
+            .printer-card.fail {
+                border-color: red;
+            }
+
+            .printer-card.finished {
+                border-color: blue;
+            }
+
+            .printer-card .left {
+                flex: 1;
+                padding-right: 30px;
+            }
+
+            .printer-card .right {
+                width: 100px;
+                height: 100px;
+                display: flex;
+                justify-content: center;
+                align-content: center;
             }
 
             .progress-bar {
@@ -36,12 +117,15 @@
                 border-radius: 6px;
                 overflow: hidden;
                 height: 14px;
+                margin-bottom: 10px;
+                width: 200px;
             }
 
             .progress-fill {
                 background: #4caf50;
                 height: 100%;
                 transition: width .3s;
+                position: relative;
             }
 
             .details {
@@ -49,16 +133,6 @@
                 grid-template-columns: 1fr 300px;
                 gap: 15px;
                 margin-top: 12px;
-            }
-
-            .details img {
-                width: 100%;
-                border-radius: 8px;
-            }
-
-            .toggle {
-                cursor: pointer;
-                font-size: 20px;
             }
 
             /* Timer at the bottom */
@@ -74,77 +148,204 @@
                 font-size: 16px;
                 z-index: 100;
             }
+
+            /* Styling for empty sections when expanded */
+            /*.status-section.empty {*/
+            /*    background-color: lightgray;*/ /* Light gray background for empty sections */
+            /*    margin-bottom: 30px;*/ /* Slightly larger gap for empty sections */
+            /*}*/
+
+            /* Section that has no printers, will show a larger gap when expanded */
+            /*.status-section.empty > div {*/
+            /*    min-height: 100px;*/ /* Ensures a visible empty space in the expanded section */
+            /*}*/
+
+            .section-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+
+                background: white;
+                border-radius: 10px;
+                padding: 12px 16px;
+
+                margin: 20px 0 10px 0;
+                box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+
+                cursor: pointer;
+                user-select: none;
+                font-weight: 600;
+            }
+
+            .section-left {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+
+            .section-arrow {
+                font-size: 18px;
+                width: 20px;
+            }
+
+            .section-count {
+                background: #eee;
+                padding: 4px 10px;
+                border-radius: 20px;
+                font-size: 13px;
+                min-width: 28px;
+                text-align: center;
+            }
+
+            .status-section.empty .printer-row {
+                min-height: 0px;
+            }
+
+            .status-section.empty.expanded .printer-row {
+                min-height: 80px;
+                background: #666;
+                border-radius: 10px;
+                margin-top: 10px;
+            }
+
+            .status-section.idle .section-header {
+                background: #666;
+                border: 2px solid #666;
+            }
+
+            .status-section.running .section-header {
+                background: green;
+                border: 2px solid #666;
+            }
+
+            .status-section.paused .section-header {
+                background: yellow;
+                border: 2px solid #666;
+            }
+
+            .status-section.fail .section-header {
+                background: red;
+                border: 2px solid #666;
+            }
+
+            .status-section.finished .section-header {
+                background: blue;
+                border: 2px solid #666;
+            }
+
+            #file-input {
+                margin: 20px;
+            }
         </style>
     </head>
 
     <body>
-
-        <h2 style="margin-left:12px;">3D Lab Printer Status</h2>
+        <h2>3D Lab Printer Status</h2>
+        
         <div id="container"></div>
 
         <!-- Timer at the bottom of the page -->
         <div id="refresh-timer">Next refresh in 60s</div>
 
         <script>
-            let lastData = null;        //Store previous data for comparison to refresh on new data
-            let expandedCards = {};     //Track cards that were expanded
-            let refreshInterval = 60;   //Refresh every 60 seconds (+ time for github actions)
+            let lastData = null;        // Store previous data for comparison to refresh on new data
+            let refreshInterval = 60;   // Refresh every 60 seconds (+ time for github actions)
             let countdown = refreshInterval;
 
-            //
             async function load() {
                 const res = await fetch("status.json?_=" + Date.now());
                 const printers = await res.json();
-
-                //Comparing new data with last updated data
+                // Comparing new data with last updated data
                 const dataStr = JSON.stringify(printers);
-                if (lastData === dataStr) return false; //No change. Data has not changed
+                if (lastData === dataStr) return false; // No change. Data has not changed
 
                 const c = document.getElementById("container");
                 c.innerHTML = "";
 
-                printers.slice(0,7).forEach((p, i) => {
-                    const progress = p.pct_progress / 100;
-                    const total = progress < 1 ? Math.round(p.min_remaining / (1 - (progress))):0;
-                    const id = "d" + i;
+                const statuses = ["IDLE", "RUNNING", "PAUSED", "FAIL", "FINISHED"];
+                statuses.forEach(status => {
+                    const filteredPrinters = printers.filter(p => p.status === status);
 
+                    const sectionClass = filteredPrinters.length === 0 ? "empty" : "";
+                    const sectionId = `${status.toLowerCase()}-section`;
+                    const isExpanded = localStorage.getItem(sectionId) === 'true';
+                    const expandedClass = isExpanded ? "expanded" : "";
+                    const arrow = isExpanded ? "▼" : "▶";
+                    const count = filteredPrinters.length;
                     c.innerHTML += `
-                    <div class="printer-card">
-                        <div class="row">
-                            <span class="toggle" onclick="toggle('${id}')">click</span>
-                            <b>${p.printer}</b>
-                            <span>${p.status}</span>
-                            <div class="progress-bar">
-                                <div class="progress-fill" style="width:${p.pct_progress}%"></div>
-                            </div>
-                            <span>${p.pct_progress}%</span>
-                            <span>${p.min_remaining} / ${total} min</span>
-                            <span>${p.current_layer_num}/${p.total_layer_num}</span>
-                        </div>
+                        <div class="status-section ${status.toLowerCase()} ${sectionClass} ${expandedClass}">
+                            
+                            <div class="section-header" onclick="toggleSection('${sectionId}', this)">
+                                <div class="section-left">
+                                    <span class="section-arrow">${arrow}</span>
+                                    <span class="section-title">${status}</span>
+                                </div>
 
-                        <div class="details" id="${id}">
-                            <div>
-                                <div><b>Printer:</b> ${p.printer}</div>
-                                <div><b>Status:</b> ${p.status}</div>
-                                <div><b>Progress:</b> ${p.pct_progress}%</div>
-                                <div><b>Remaining:</b> ${p.min_remaining} min</div>
-                                <div><b>Layers:</b> ${p.current_layer_num}/${p.total_layer_num}</div>
+                                <div class="section-count">
+                                    ${count}
+                                </div>
                             </div>
-                            <img src="printer${i+1}.png?_=${Date.now()}">
-                        </div>
-                    </div>`;
 
-                    //Restore expanded cards
-                    if (expandedCards[id]) {
-                        document.getElementById(id).style.display = "grid";
-                    }
+                            <div id="${sectionId}" style="display:${isExpanded ? 'block' : 'none'};">
+                                <div class="printer-row"></div>
+                            </div>
+                        </div>
+                    `;
+
+                    // Add printers to the section
+                    filteredPrinters.forEach((p, i) => {
+                        const progress = p.pct_progress / 100;
+                        const total = progress < 1 ? Math.round(p.min_remaining / (1 - progress)) : 0;
+
+                        const printerCardClass = status.toLowerCase(); // Dynamically add class based on status
+                        const printerRow = document.querySelector(`#${status.toLowerCase()}-section .printer-row`);
+
+                        printerRow.innerHTML += `
+                            <div class="printer-card ${printerCardClass}">
+                                <div class="left">
+                                    <div><b>Printer:</b> ${p.printer}</div>
+                                    <div><b>Status:</b> ${p.status}</div>
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" style="width:${p.pct_progress}%">
+                                            <span style="font-size: 10px; color: black; position: absolute; left: 50%; transform: translateX(-50%); top: 50%; transform: translateY(-50%);">${p.pct_progress}%</span>
+                                        </div>
+                                    </div>
+                                    <div><b>Minutes:</b> ${p.min_remaining} / ${total} min</div>
+                                    <div><b>Layers:</b> ${p.current_layer_num}/${p.total_layer_num}</div>
+                                    <div><b>Nozzle:</b> ${p.nozzle_temp} / ${p.target_nozzle_temp}°C</div>
+                                    <div><b>Bed:</b> ${p.bed_temp} / ${p.target_bed_temp}°C</div>
+                                </div>
+                                <div class="right">
+                                    <img src="printer${i+1}.png?_=${Date.now()}" alt="Printer Image">
+                                </div>
+                            </div>`;
+                    });
                 });
 
-                //If new data has been uploaded
+                // If new data has been uploaded
                 lastData = dataStr;
                 return true;
             }
 
+            // Function to toggle section collapse/expand
+            function toggleSection(sectionId, headerEl) {
+                const section = document.getElementById(sectionId);
+                const wrapper = headerEl.parentElement;
+
+                const isExpanded = section.style.display === 'block';
+                const newState = !isExpanded;
+
+                section.style.display = newState ? 'block' : 'none';
+                wrapper.classList.toggle("expanded", newState);
+                localStorage.setItem(sectionId, newState);
+
+                const arrow = headerEl.querySelector(".section-arrow");
+                if (arrow) {
+                    arrow.textContent = newState ? "▼" : "▶";
+                }
+            }
+
+            // Timer to update the refresh counter and load new data
             function tick() {
                 const timer = document.getElementById("refresh-timer");
                 countdown = countdown - 1;
@@ -152,21 +353,15 @@
                 if (countdown <= 0) {
                     timer.textContent = "Checking for new data...";
                     load().then(updated => {
-                        if (updated) countdown = refreshInterval; //Only reset if new data
+                        if (updated) countdown = refreshInterval; // Only reset if new data
                     });
                 } else {
                     timer.textContent = `Next refresh in ${countdown}s`;
                 }
             }
 
-            function toggle(id) {
-                const el = document.getElementById(id);
-                el.style.display = el.style.display === "grid" ? "none" : "grid";
-                expandedCards[id] = el.style.display === "grid";
-            }
-
-            setInterval(tick, 1000); //Repeat loading json and images every 5 sec
-            //Initial load
+            setInterval(tick, 1000); // Repeat loading json and images every second
+            // Initial load
             load();
         </script>
     </body>
