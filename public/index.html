@@ -268,7 +268,7 @@
 
                     const sectionClass = filteredPrinters.length === 0 ? "empty" : "";
                     const sectionId = `${status.toLowerCase()}-section`;
-                    const isExpanded = localStorage.getItem(sectionId) === 'true';
+                    const isExpanded = sessionStorage.getItem(sectionId) === 'true';
                     const expandedClass = isExpanded ? "expanded" : "";
                     const arrow = isExpanded ? "▼" : "▶";
                     const count = filteredPrinters.length;
@@ -299,7 +299,7 @@
 
                         const printerCardClass = status.toLowerCase(); // Dynamically add class based on status
                         const printerRow = document.querySelector(`#${status.toLowerCase()}-section .printer-row`);
-
+                        //TODO: For printers that are finished, target bed temp and target nozzle temp are not 0C. They are 22 and 25 C.
                         printerRow.innerHTML += `
                             <div class="printer-card ${printerCardClass}">
                                 <div class="left">
@@ -337,7 +337,7 @@
 
                 section.style.display = newState ? 'block' : 'none';
                 wrapper.classList.toggle("expanded", newState);
-                localStorage.setItem(sectionId, newState);
+                sessionStorage.setItem(sectionId, newState);
 
                 const arrow = headerEl.querySelector(".section-arrow");
                 if (arrow) {
