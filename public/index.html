@@ -262,7 +262,7 @@
                 const c = document.getElementById("container");
                 c.innerHTML = "";
 
-                const statuses = ["IDLE", "RUNNING", "PAUSED", "FAIL", "FINISHED"];
+                const statuses = ["IDLE", "RUNNING", "PAUSE", "FAIL", "FINISH"];
                 statuses.forEach(status => {
                     const filteredPrinters = printers.filter(p => p.status === status);
 
