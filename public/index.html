@@ -250,7 +250,7 @@
         <script>
             let lastData = null;        // Store previous data for comparison to refresh on new data
             let refreshInterval = 60;   // Refresh every 60 seconds (+ time for github actions)
-            let countdown = refreshInterval;
+            let countdown = 0;
 
             async function load() {
                 const res = await fetch("status.json?_=" + Date.now());
