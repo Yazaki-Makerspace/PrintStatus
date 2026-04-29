@@ -310,6 +310,10 @@
 
             setInterval(tick, 1000); // Repeat loading json and images every second
             // Initial load
+            const res = await fetch("status.json?_=" + Date.now());
+            const data = await res.json();
+
+            const updated = load(data);
             //load();
         </script>
     </body>
