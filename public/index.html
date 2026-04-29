@@ -21,19 +21,6 @@
                 margin: 20px;
             }
 
-            .status-section {
-                margin-bottom: 40px;
-            }
-
-            .status-section h3 {
-                padding: 15px;
-                text-transform: uppercase;
-                color: white;
-                font-size: 16px;
-                margin: 0;
-                cursor: pointer;
-            }
-
             .idle h3 {
                 background-color: #666;
             }
@@ -43,25 +30,22 @@
             }
 
             .pause h3 {
-                background-color: yellow;
-                color: black;
+                background-color: red;
             }
 
             .failed h3 {
                 background-color: red;
-                color: white;
             }
 
-            .finish h3 {
-                background-color: blue;
-                color: white;
+            .finished h3 {
+                background-color: #666;
             }
 
             .printer-row {
                 display: grid;
                 grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-                gap: 35px;
-                margin-top: 10px;
+                gap: 30px;
+                margin: 10px;
                 justify-items: stretch;
             }
 
@@ -70,16 +54,18 @@
                 align-items: center;
                 background: white;
                 border-radius: 10px;
-                margin: 20px 0;
-                padding: 20px;
+                margin: 0px;
+                padding: 10px;
                 box-shadow: 0 2px 10px rgba(0,0,0,.1);
                 border: 5px solid transparent;
                 transition: transform .3s ease-in-out;
-                min-width: 300px;
+                min-width: 350px;
+                max-width: 350px;
                 flex-wrap: wrap;
             }
             
-            .printer-card.idle {
+            .printer-card.idle,
+            .printer-card.finish {
                 border-color: #666;
             }
 
@@ -87,16 +73,9 @@
                 border-color: green;
             }
 
-            .printer-card.pause {
-                border-color: yellow;
-            }
-
+            .printer-card.pause,
             .printer-card.failed {
                 border-color: red;
-            }
-
-            .printer-card.finish {
-                border-color: blue;
             }
 
             .printer-card .left {
@@ -149,90 +128,6 @@
                 z-index: 100;
             }
 
-            /* Styling for empty sections when expanded */
-            /*.status-section.empty {*/
-            /*    background-color: lightgray;*/ /* Light gray background for empty sections */
-            /*    margin-bottom: 30px;*/ /* Slightly larger gap for empty sections */
-            /*}*/
-
-            /* Section that has no printers, will show a larger gap when expanded */
-            /*.status-section.empty > div {*/
-            /*    min-height: 100px;*/ /* Ensures a visible empty space in the expanded section */
-            /*}*/
-
-            .section-header {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-
-                background: white;
-                border-radius: 10px;
-                padding: 12px 16px;
-
-                margin: 20px 0 10px 0;
-                box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-
-                cursor: pointer;
-                user-select: none;
-                font-weight: 600;
-            }
-
-            .section-left {
-                display: flex;
-                align-items: center;
-                gap: 10px;
-            }
-
-            .section-arrow {
-                font-size: 18px;
-                width: 20px;
-            }
-
-            .section-count {
-                background: #eee;
-                padding: 4px 10px;
-                border-radius: 20px;
-                font-size: 13px;
-                min-width: 28px;
-                text-align: center;
-            }
-
-            .status-section.empty .printer-row {
-                min-height: 0px;
-            }
-
-            .status-section.empty.expanded .printer-row {
-                min-height: 80px;
-                background: #666;
-                border-radius: 10px;
-                margin-top: 10px;
-            }
-
-            .status-section.idle .section-header {
-                background: #666;
-                border: 2px solid #666;
-            }
-
-            .status-section.running .section-header {
-                background: green;
-                border: 2px solid #666;
-            }
-
-            .status-section.pause .section-header {
-                background: yellow;
-                border: 2px solid #666;
-            }
-
-            .status-section.failed .section-header {
-                background: red;
-                border: 2px solid #666;
-            }
-
-            .status-section.finish .section-header {
-                background: blue;
-                border: 2px solid #666;
-            }
-
             #file-input {
                 margin: 20px;
             }
@@ -241,122 +136,199 @@
 
     <body>
         <h2>3D Lab Printer Status</h2>
+
+        <!-- File input to select status.json for testing -->
+        <input type="file" id="file-input" />
         
         <div id="container"></div>
 
         <!-- Timer at the bottom of the page -->
-        <div id="refresh-timer">Next refresh in 60s</div>
+        <div id="refresh-timer">Loading...</div>
 
         <script>
-            let lastData = null;        // Store previous data for comparison to refresh on new data
-            let refreshInterval = 600;   // Refresh every 60 seconds (+ time for github actions)
-            let countdown = 0;
+            let refreshInterval = 60;   // Refresh every 60 seconds (+ time for github actions)
+            let timestamp = null;
+            let lastTimeStamp = null;
+            let nextRefreshTime = null;
+            let isPolling = false;
 
-            async function load() {
-                const res = await fetch("status.json?_=" + Date.now());
-                const printers = await res.json();
-                // Comparing new data with last updated data
-                const dataStr = JSON.stringify(printers);
-                if (lastData === dataStr) return false; // No change. Data has not changed
+            // Handle file input change event
+            const fileInput = document.getElementById('file-input');
+            fileInput.addEventListener('change', handleFileSelect, false);
+
+            function handleFileSelect(event) {
+                const file = event.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const contents = e.target.result;
+                        try {
+                            const data = JSON.parse(contents);
+                            load(data); // Call load() with parsed printers data
+                        } catch (err) {
+                            console.error('Error parsing JSON:', err);
+                        }
+                    };
+                    reader.readAsText(file);
+                }
+            }
+
+            function load(data_in) {
+                //console.log("Loading data...");
+                //const res = await fetch("status.json?_=" + Date.now());
+                //const printers = await res.json();
+                // Comparing timestamps
+                timestamp = data_in.timestamp;
+                if (lastTimeStamp === timestamp) return false;
+                printers = data_in.printers;
+                
+                
+                const baseTime = parseTimestamp(timestamp);
+                const unlockTime = baseTime.getTime() + (refreshInterval * 1000);
+                nextRefreshTime = unlockTime;
+
+                // document.getElementById("refresh-timer").textContent = timestamp 
+                // ? `Last updated: ${timestamp} | Next refresh at ${nextRefreshTime}s`
+                // : `Loading...`;
 
                 const c = document.getElementById("container");
-                c.innerHTML = "";
+                c.innerHTML = `<div class="printer-row"></div>`;
+                const printerRow = c.querySelector(".printer-row");
 
-                const statuses = ["IDLE", "RUNNING", "PAUSE", "FAILED", "FINISH"];
-                statuses.forEach(status => {
-                    const filteredPrinters = printers.filter(p => p.status === status);
+                printers.forEach((p, i) => {
+                    const progress = p.pct_progress / 100;
+                    const total = progress < 1 ? Math.round(p.min_remaining / (1 - progress)) : 0;
 
-                    const sectionClass = filteredPrinters.length === 0 ? "empty" : "";
-                    const sectionId = `${status.toLowerCase()}-section`;
-                    const isExpanded = sessionStorage.getItem(sectionId) === 'true';
-                    const expandedClass = isExpanded ? "expanded" : "";
-                    const arrow = isExpanded ? "▼" : "▶";
-                    const count = filteredPrinters.length;
-                    c.innerHTML += `
-                        <div class="status-section ${status.toLowerCase()} ${sectionClass} ${expandedClass}">
-                            
-                            <div class="section-header" onclick="toggleSection('${sectionId}', this)">
-                                <div class="section-left">
-                                    <span class="section-arrow">${arrow}</span>
-                                    <span class="section-title">${status}</span>
+                    let statusClass = "";
+                    if (p.status === "RUNNING") {
+                        statusClass = "running";
+                    } else if (p.status === "PAUSE" || p.status === "FAILED") {
+                        statusClass = "pause"; // PAUSE + FAILED
+                    } else {
+                        statusClass = "idle"; // IDLE + FINISH
+                    }
+
+                    // const printerCardClass = status.toLowerCase(); // Dynamically add class based on status
+                    // const printerRow = document.querySelector(`#${status.toLowerCase()}-section .printer-row`);
+                    printerRow.innerHTML += `
+                        <div class="printer-card ${statusClass}">
+                            <div class="left">
+                                <div><b>Printer:</b> ${p.printer}</div>
+                                <div><b>Status:</b> ${p.status}</div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width:${p.pct_progress}%">
+                                        <span style="font-size: 10px; color: black; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);">${p.pct_progress}%</span>
+                                    </div>
                                 </div>
-
-                                <div class="section-count">
-                                    ${count}
-                                </div>
+                                <div><b>Remaining min.:</b> ${p.min_remaining} / ${total} min</div>
+                                <div><b>Layers:</b> ${p.current_layer_num}/${p.total_layer_num}</div>
+                                <div><b>Nozzle:</b> ${p.nozzle_temp} / ${p.target_nozzle_temp}°C</div>
+                                <div><b>Bed:</b> ${p.bed_temp} / ${p.target_bed_temp}°C</div>
                             </div>
-
-                            <div id="${sectionId}" style="display:${isExpanded ? 'block' : 'none'};">
-                                <div class="printer-row"></div>
+                            <div class="right">
+                                <img src="printer${i+1}.png?_=${Date.now()}" alt="Printer Image">
                             </div>
                         </div>
                     `;
 
-                    // Add printers to the section
-                    filteredPrinters.forEach((p, i) => {
-                        const progress = p.pct_progress / 100;
-                        const total = progress < 1 ? Math.round(p.min_remaining / (1 - progress)) : 0;
+                // Add printers to the section
+                // filteredPrinters.forEach((p, i) => {
+                //     const progress = p.pct_progress / 100;
+                //     const total = progress < 1 ? Math.round(p.min_remaining / (1 - progress)) : 0;
 
-                        const printerCardClass = status.toLowerCase(); // Dynamically add class based on status
-                        const printerRow = document.querySelector(`#${status.toLowerCase()}-section .printer-row`);
-                        //TODO: For printers that are finished, target bed temp and target nozzle temp are not 0C. They are 22 and 25 C.
-                        printerRow.innerHTML += `
-                            <div class="printer-card ${printerCardClass}">
-                                <div class="left">
-                                    <div><b>Printer:</b> ${p.printer}</div>
-                                    <div><b>Status:</b> ${p.status}</div>
-                                    <div class="progress-bar">
-                                        <div class="progress-fill" style="width:${p.pct_progress}%">
-                                            <span style="font-size: 10px; color: black; position: absolute; left: 50%; transform: translateX(-50%); top: 50%; transform: translateY(-50%);">${p.pct_progress}%</span>
-                                        </div>
-                                    </div>
-                                    <div><b>Minutes:</b> ${p.min_remaining} / ${total} min</div>
-                                    <div><b>Layers:</b> ${p.current_layer_num}/${p.total_layer_num}</div>
-                                    <div><b>Nozzle:</b> ${p.nozzle_temp} / ${p.target_nozzle_temp}°C</div>
-                                    <div><b>Bed:</b> ${p.bed_temp} / ${p.target_bed_temp}°C</div>
-                                </div>
-                                <div class="right">
-                                    <img src="printer${i+1}.png?_=${Date.now()}" alt="Printer Image">
-                                </div>
-                            </div>`;
-                    });
+                //     const printerCardClass = status.toLowerCase(); // Dynamically add class based on status
+                //     const printerRow = document.querySelector(`#${status.toLowerCase()}-section .printer-row`);
+
+                //     printerRow.innerHTML += `
+                //         <div class="printer-card ${printerCardClass}">
+                //             <div class="left">
+                //                 <div><b>Printer:</b> ${p.printer}</div>
+                //                 <div><b>Status:</b> ${p.status}</div>
+                //                 <div class="progress-bar">
+                //                     <div class="progress-fill" style="width:${p.pct_progress}%">
+                //                         <span style="font-size: 10px; color: black; position: absolute; left: 50%; transform: translateX(-50%); top: 50%; transform: translateY(-50%);">${p.pct_progress}%</span>
+                //                     </div>
+                //                 </div>
+                //                 <div><b>Minutes:</b> ${p.min_remaining} / ${total} min</div>
+                //                 <div><b>Layers:</b> ${p.current_layer_num}/${p.total_layer_num}</div>
+                //                 <div><b>Nozzle:</b> ${p.nozzle_temp} / ${p.target_nozzle_temp}°C</div>
+                //                 <div><b>Bed:</b> ${p.bed_temp} / ${p.target_bed_temp}°C</div>
+                //             </div>
+                //             <div class="right">
+                //                 <img src="printer${i+1}.png?_=${Date.now()}" alt="Printer Image">
+                //             </div>
+                //         </div>`;
+                // });
                 });
-
                 // If new data has been uploaded
-                lastData = dataStr;
+                lastTimeStamp = timestamp;
                 return true;
             }
 
-            // Function to toggle section collapse/expand
-            function toggleSection(sectionId, headerEl) {
-                const section = document.getElementById(sectionId);
-                const wrapper = headerEl.parentElement;
+            function parseTimestamp(str) {
+                // Expected: "MM/DD/YYYY HH:MM:SS AM/PM"
+                const [datePart, timePart, meridiem] = str.split(" ");
 
-                const isExpanded = section.style.display === 'block';
-                const newState = !isExpanded;
+                const [month, day, year] = datePart.split("/").map(Number);
+                let [hour, minute, second] = timePart.split(":").map(Number);
 
-                section.style.display = newState ? 'block' : 'none';
-                wrapper.classList.toggle("expanded", newState);
-                sessionStorage.setItem(sectionId, newState);
+                if (meridiem === "PM" && hour !== 12) hour += 12;
+                if (meridiem === "AM" && hour === 12) hour = 0;
 
-                const arrow = headerEl.querySelector(".section-arrow");
-                if (arrow) {
-                    arrow.textContent = newState ? "▼" : "▶";
+                return new Date(year, month - 1, day, hour, minute, second);
+            }
+
+            async function pollForUpdate() {
+                while (true) {
+                    try {
+                        const res = await fetch("status.json?_=" + Date.now());
+                        const data = await res.json();
+
+                        const updated = load(data);
+
+                        if (updated) {
+                            updateNextRefreshTime();
+                            isPolling = false;
+                            return;
+                        }
+                    } catch (err) {
+                        console.error(err);
+                    }
+
+                    await new Promise(r => setTimeout(r, 1000));
                 }
+            }
+
+            function updateNextRefreshTime() {
+                if (!timestamp) return;
+
+                const baseTime = parseTimestamp(timestamp);
+                nextRefreshTime = baseTime.getTime() + refreshInterval * 1000;
             }
 
             // Timer to update the refresh counter and load new data
             function tick() {
                 const timer = document.getElementById("refresh-timer");
-                countdown = countdown - 1;
 
-                if (countdown <= 0) {
-                    timer.textContent = "Checking for new data...";
-                    load().then(updated => {
-                        if (updated) countdown = refreshInterval; // Only reset if new data
-                    });
-                } else {
-                    timer.textContent = `Next refresh in ${countdown}s`;
+                if (!timestamp || !nextRefreshTime) {
+                    timer.textContent = "Loading...";
+                    return;
+                }
+
+                const now = Date.now();
+
+                if (now < nextRefreshTime) {
+                    const secondsLeft = Math.ceil((nextRefreshTime - now) / 1000);
+                    timer.textContent = `Last updated: ${timestamp} | Next refresh at ${nextRefreshTime}s`;
+                    return;
+                }
+
+                timer.textContent = `Last updated: ${timestamp} | Checking for updates...`;
+
+                // Once unlocked, just keep checking until new data arrives
+                if (!isPolling) {
+                    isPolling = true;
+                    pollForUpdate();
                 }
             }
 
