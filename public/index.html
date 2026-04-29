@@ -152,27 +152,6 @@
             let nextRefreshTime = null;
             let isPolling = false;
 
-            // Handle file input change event
-            const fileInput = document.getElementById('file-input');
-            fileInput.addEventListener('change', handleFileSelect, false);
-
-            function handleFileSelect(event) {
-                const file = event.target.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        const contents = e.target.result;
-                        try {
-                            const data = JSON.parse(contents);
-                            load(data); // Call load() with parsed printers data
-                        } catch (err) {
-                            console.error('Error parsing JSON:', err);
-                        }
-                    };
-                    reader.readAsText(file);
-                }
-            }
-
             function load(data_in) {
                 //console.log("Loading data...");
                 //const res = await fetch("status.json?_=" + Date.now());
