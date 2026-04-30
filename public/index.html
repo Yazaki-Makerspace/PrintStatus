@@ -157,7 +157,7 @@
                 timestamp = data_in.timestamp;
                 console.log(`timestmap: ${timestamp}, Last timestamp: ${lastTimeStamp}`);
                 if (lastTimeStamp === timestamp) return false;
-                printers = data_in.printers;
+                const printers = data_in.printers;
                 
                 
                 const baseTime = parseTimestamp(timestamp);
@@ -197,8 +197,8 @@
                                         <span style="font-size: 10px; color: black; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);">${p.pct_progress}%</span>
                                     </div>
                                 </div>
-                                <div><b>Remaining min.:</b> ${p.min_remaining} / ${total} min</div>
-                                <div><b>Layers:</b> ${p.current_layer_num}/${p.total_layer_num}</div>
+                                <div><b>Min. left:</b> ${p.min_remaining} / ${total} min</div>
+                                <div><b>Layer:</b> ${p.current_layer_num} / ${p.total_layer_num}</div>
                                 <div><b>Nozzle:</b> ${p.nozzle_temp} / ${p.target_nozzle_temp}°C</div>
                                 <div><b>Bed:</b> ${p.bed_temp} / ${p.target_bed_temp}°C</div>
                             </div>
@@ -267,7 +267,8 @@
 
                 if (now < nextRefreshTime) {
                     const secondsLeft = Math.ceil((nextRefreshTime - now) / 1000);
-                    timer.textContent = `Last updated: ${timestamp} | Next refresh at ${nextRefreshTime}s`;
+                    const nextTimeStr = formatTime(nextRefreshTime);
+                    timer.textContent = `Last updated: ${timestamp} | Next refresh at ${nextTimeStr}`;
                     return;
                 }
 
@@ -284,12 +285,33 @@
                 }
             }
 
+            function formatTime(ms) {
+                const d = new Date(ms);
+
+                let hours = d.getHours();
+                const minutes = d.getMinutes().toString().padStart(2, "0");
+                const seconds = d.getSeconds().toString().padStart(2, "0");
+                const ampm = hours >= 12 ? "PM" : "AM";
+
+                hours = hours % 12;
+                if (hours === 0) hours = 12;
+
+                return `${hours}:${minutes}:${seconds} ${ampm}`;
+            }
+
             setInterval(tick, 1000); // Repeat loading json and images every second
             // Initial load
-            const res = await fetch("status.json?_=" + Date.now());
-            const data = await res.json();
+            async function init() {
+                try {
+                    const res = await fetch("status.json?_=" + Date.now());
+                    const data = await res.json();
+                    load(data);
+                } catch (err) {
+                    console.error(err);
+                }
+            }
 
-            const updated = load(data);
+            init();
             //load();
         </script>
     </body>
