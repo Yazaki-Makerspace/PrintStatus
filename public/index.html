@@ -156,7 +156,7 @@
                 // Comparing timestamps
                 timestamp = data_in.timestamp;
                 if (lastTimeStamp === timestamp) return false;
-                printers = data_in.printers;
+                const printers = data_in.printers;
                 
                 
                 const baseTime = parseTimestamp(timestamp);
@@ -310,10 +310,17 @@
 
             setInterval(tick, 1000); // Repeat loading json and images every second
             // Initial load
-            const res = await fetch("status.json?_=" + Date.now());
-            const data = await res.json();
+            async function init() {
+                try {
+                    const res = await fetch("status.json?_=" + Date.now());
+                    const data = await res.json();
+                    load(data);
+                } catch (err) {
+                    console.error(err);
+                }
+            }
 
-            const updated = load(data);
+            init();
             //load();
         </script>
     </body>
