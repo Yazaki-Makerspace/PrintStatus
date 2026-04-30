@@ -295,7 +295,8 @@
 
                 if (now < nextRefreshTime) {
                     const secondsLeft = Math.ceil((nextRefreshTime - now) / 1000);
-                    timer.textContent = `Last updated: ${timestamp} | Next refresh at ${nextRefreshTime}s`;
+                    const nextTimeStr = formatTime(nextRefreshTime);
+                    timer.textContent = `Last updated: ${timestamp} | Next refresh at ${nextTimeStr}`;
                     return;
                 }
 
@@ -306,6 +307,20 @@
                     isPolling = true;
                     pollForUpdate();
                 }
+            }
+
+            function formatTime(ms) {
+                const d = new Date(ms);
+
+                let hours = d.getHours();
+                const minutes = d.getMinutes().toString().padStart(2, "0");
+                const seconds = d.getSeconds().toString().padStart(2, "0");
+                const ampm = hours >= 12 ? "PM" : "AM";
+
+                hours = hours % 12;
+                if (hours === 0) hours = 12;
+
+                return `${hours}:${minutes}:${seconds} ${ampm}`;
             }
 
             setInterval(tick, 1000); // Repeat loading json and images every second
