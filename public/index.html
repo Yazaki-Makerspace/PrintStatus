@@ -232,7 +232,7 @@
                         const res = await fetch("status.json?_=" + Date.now(), { cache: "no-store" });
                         const data = await res.json();
 
-                        console.log(`Data received: ${data}`)
+                        console.log(`Data received: ${JSON.stringify(data, null, 2)}`)
 
                         const updated = load(data);
 
