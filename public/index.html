@@ -232,6 +232,8 @@
                         const res = await fetch("status.json?_=" + Date.now(), { cache: "no-store" });
                         const data = await res.json();
 
+                        console.log(`Data received: ${data}`)
+
                         const updated = load(data);
 
                         if (updated) {
@@ -243,7 +245,7 @@
                         console.error(err);
                     }
 
-                    await new Promise(r => setTimeout(r, 1000));
+                    await new Promise(r => setTimeout(r, 3000));
                 }
             }
 
