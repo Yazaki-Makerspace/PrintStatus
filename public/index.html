@@ -143,7 +143,7 @@
         <div id="refresh-timer">Loading...</div>
 
         <script>
-            let refreshInterval = 60;   // Refresh every 60 seconds (+ time for github actions)
+            let refreshInterval = 600;   // Refresh every 600 seconds (+ time for github actions)
             let timestamp = null;
             let lastTimeStamp = null;
             let nextRefreshTime = null;
@@ -158,6 +158,7 @@
                 console.log(`timestmap: ${timestamp}, Last timestamp: ${lastTimeStamp}`);
                 if (lastTimeStamp === timestamp) return false;
                 const printers = data_in.printers;
+                refreshInterval = data_in.poll_interval;
                 
                 
                 const baseTime = parseTimestamp(timestamp);
