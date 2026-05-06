@@ -26,7 +26,7 @@ jobs:
 
       - name: Add frontend
         run: |
-          cp public/index.html site/
+          cp public/* site/
       
       - name: Setup Pages
         uses: actions/configure-pages@v5
