@@ -205,7 +205,7 @@
                                 <div><b>Bed:</b> ${p.bed_temp} / ${p.target_bed_temp}°C</div>
                             </div>
                             <div class="right">
-                                <img src="printer${i+1}.png?_=${Date.now()}" alt="Printer Image">
+                                <img src="${getPrinterImage(p.printer)}?_=${Date.now()}" alt="Printer Image">
                             </div>
                         </div>
                     `;
@@ -213,6 +213,14 @@
                 // If new data has been uploaded
                 lastTimeStamp = timestamp;
                 return true;
+            }
+
+            function getPrinterImage(printerName) {
+                if (printerName.includes("P1S")) return "P1S.jpg";
+                if (printerName.includes("A1-mini")) return "A1-mini.jpg";
+                if (printerName.includes("H2C")) return "H2C.jpg";
+                if (printerName.includes("X1E")) return "X1E.jpg";
+                return "P1S.jpg"; // fallback if unknown
             }
 
             function parseTimestamp(str) {
