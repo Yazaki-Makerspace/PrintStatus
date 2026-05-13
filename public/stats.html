@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>3D Lab Printer Statistics</title>
+
+        <style>
+            body {
+                font-family: system-ui, sans-serif;
+                background: #202020;
+                margin: 0;
+                padding-bottom: 40px;
+                color: white;
+            }
+
+            h2 {
+                margin-left: 12px;
+                font-size: 24px;
+                color: white;
+            }
+
+            .nav {
+                margin: 0 20px 20px 20px;
+            }
+
+            .nav a {
+                color: white;
+                background: #444;
+                text-decoration: none;
+                padding: 10px 16px;
+                border-radius: 8px;
+                margin-right: 10px;
+                display: inline-block;
+            }
+
+            .nav a:hover {
+                background: #666;
+            }
+
+            #chart-container {
+                background: #c0c0c0;
+                margin: 20px;
+                padding: 20px;
+                border-radius: 10px;
+                color: black;
+                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            }
+
+            canvas {
+                width: 100%;
+                max-width: 1200px;
+                height: 500px;
+                display: block;
+            }
+
+            #refresh-timer {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                background: #333;
+                color: white;
+                text-align: center;
+                padding: 10px 0;
+                font-size: 16px;
+                z-index: 100;
+            }
+        </style>
+    </head>
+
+    <body>
+        <h2>3D Lab Printer Statistics</h2>
+
+        <div class="nav">
+            <a href="index.html">Dashboard</a>
+            <a href="stats.html">Statistics</a>
+        </div>
+
+        <div id="chart-container">
+            <h3>Total Lifetime Print Hours by Printer</h3>
+            <canvas id="hoursChart" width="1200" height="500"></canvas>
+        </div>
+
+        <div id="refresh-timer">Loading...</div>
+
+        <script>
+            let refreshInterval = 600;   // Refresh every 600 seconds (+ time for github actions)
+            let timestamp = null;
+            let lastTimeStamp = null;
+            let nextRefreshTime = null;
+            let isPolling = false;
+
+            function load(data_in) {
+                timestamp = data_in.timestamp;
+                console.log(`timestmap: ${timestamp}, Last timestamp: ${lastTimeStamp}`);
+                if (lastTimeStamp === timestamp) return false;
+                const printers = data_in.printers;
+                refreshInterval = data_in.poll_interval;
+
+                const baseTime = parseTimestamp(timestamp);
+                const unlockTime = baseTime.getTime() + (refreshInterval * 1000);
+                nextRefreshTime = unlockTime;
+
+                drawBarChart(printers);
+                
+                // If new data has been uploaded
+                lastTimeStamp = timestamp;
+                return true;
+            }
+
+            function drawBarChart(printers) {
+                const canvas = document.getElementById("hoursChart");
+                const ctx = canvas.getContext("2d");
+
+                // Data
+                const values = [100, 200, 150, 300, 250];
+                const labels = ["A", "B", "C", "D", "E"];
+
+                // Chart settings
+                const barWidth = 60;
+                const gap = 30;
+                const chartHeight = 300;
+
+                // Draw bars
+                for (let i = 0; i < values.length; i++) {
+
+                    const x = 50 + i * (barWidth + gap);
+
+                    // Scale bar height
+                    const barHeight = values[i] * 0.8;
+
+                    // y position
+                    const y = canvas.height - barHeight - 50;
+
+                    // Draw bar
+                    ctx.fillStyle = "steelblue";
+                    ctx.fillRect(x, y, barWidth, barHeight);
+
+                    // Draw value text
+                    ctx.fillStyle = "black";
+                    ctx.font = "16px Arial";
+                    ctx.fillText(values[i], x + 10, y - 10);
+
+                    // Draw labels
+                    ctx.fillText(labels[i], x + 20, canvas.height - 20);
+                }
+
+                // Draw axes
+                ctx.beginPath();
+
+                // Y axis
+                ctx.moveTo(40, 20);
+                ctx.lineTo(40, canvas.height - 40);
+
+                // X axis
+                ctx.lineTo(canvas.width - 20, canvas.height - 40);
+
+                ctx.strokeStyle = "black";
+                ctx.stroke();
+            }
+
+            function parseTimestamp(str) {
+                // Expected: "MM/DD/YYYY HH:MM:SS AM/PM"
+                const [datePart, timePart, meridiem] = str.split(" ");
+
+                const [month, day, year] = datePart.split("/").map(Number);
+                let [hour, minute, second] = timePart.split(":").map(Number);
+
+                if (meridiem === "PM" && hour !== 12) hour += 12;
+                if (meridiem === "AM" && hour === 12) hour = 0;
+
+                return new Date(year, month - 1, day, hour, minute, second);
+            }
+
+            async function pollForUpdate() {
+                while (true) {
+                    try {
+                        const res = await fetch("status.json?_=" + Date.now(), { cache: "no-store" });
+                        const data = await res.json();
+
+                        console.log(`Data received: ${JSON.stringify(data, null, 2)}`)
+
+                        const updated = load(data);
+
+                        if (updated) {
+                            updateNextRefreshTime();
+                            isPolling = false;
+                            return;
+                        }
+                    } catch (err) {
+                        console.error(err);
+                    }
+
+                    await new Promise(r => setTimeout(r, 3000));
+                }
+            }
+
+            function updateNextRefreshTime() {
+                if (!timestamp) return;
+
+                const baseTime = parseTimestamp(timestamp);
+                nextRefreshTime = baseTime.getTime() + refreshInterval * 1000;
+            }
+
+            //Timer to update the refresh counter and load new data
+            function tick() {
+                const timer = document.getElementById("refresh-timer");
+
+                if (!timestamp || !nextRefreshTime) {
+                    timer.textContent = "Loading...";
+                    return;
+                }
+
+                const now = Date.now();
+
+                if (now < nextRefreshTime) {
+                    const secondsLeft = Math.ceil((nextRefreshTime - now) / 1000);
+                    const nextTimeStr = formatTime(nextRefreshTime);
+                    timer.textContent = `Last updated: ${timestamp} | Next refresh at ${nextTimeStr}`;
+                    return;
+                }
+
+                timer.textContent = `Last updated: ${timestamp} | Checking for updates...`;
+
+                // Once unlocked, just keep checking until new data arrives
+                if (!isPolling) {
+                    isPolling = true;
+                    pollForUpdate();
+                }
+                else
+                {
+                    console.log("Already polling")
+                }
+            }
+
+            function formatTime(ms) {
+                const d = new Date(ms);
+
+                let hours = d.getHours();
+                const minutes = d.getMinutes().toString().padStart(2, "0");
+                const seconds = d.getSeconds().toString().padStart(2, "0");
+                const ampm = hours >= 12 ? "PM" : "AM";
+
+                hours = hours % 12;
+                if (hours === 0) hours = 12;
+
+                return `${hours}:${minutes}:${seconds} ${ampm}`;
+            }
+
+            setInterval(tick, 1000); // Repeat loading json and images every second
+            // Initial load
+            async function init() {
+                try {
+                    const res = await fetch("status.json?ts=" + Date.now(), { cache: "no-store" });
+                    const data = await res.json();
+                    load(data);
+                } catch (err) {
+                    console.error(err);
+                }
+            }
+
+            init();
+        </script>
+    </body>
+</html>
