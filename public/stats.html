@@ -112,51 +112,118 @@
                 const canvas = document.getElementById("hoursChart");
                 const ctx = canvas.getContext("2d");
 
-                // Data
-                const values = [100, 200, 150, 300, 250];
-                const labels = ["A", "B", "C", "D", "E"];
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-                // Chart settings
-                const barWidth = 60;
-                const gap = 30;
-                const chartHeight = 300;
+                const chartWidth = canvas.width;
+                const chartHeight = canvas.height;
 
-                // Draw bars
-                for (let i = 0; i < values.length; i++) {
+                const marginLeft = 80;
+                const marginRight = 40;
+                const marginTop = 40;
+                const marginBottom = 100;
 
-                    const x = 50 + i * (barWidth + gap);
+                const plotWidth = chartWidth - marginLeft - marginRight;
+                const plotHeight = chartHeight - marginTop - marginBottom;
 
-                    // Scale bar height
-                    const barHeight = values[i] * 0.8;
+                const printerNames = printers.map(p => p.printer);
+                const totalHours = pritners.map(p => Number(p.total_print_hours) || 0);
 
-                    // y position
-                    const y = canvas.height - barHeight - 50;
+                const maxHours = Math.max(...totalHours, 1);
+                const roundedMax = Math.ceil(maxHours / 10) * 10;
 
-                    // Draw bar
-                    ctx.fillStyle = "steelblue";
-                    ctx.fillRect(x, y, barWidth, barHeight);
+                const barGap = 20;
+                const barWidth = Math.max(20, (plotWidth - barGap * (printers.length - 1)) / printers.length);
 
-                    // Draw value text
+                //Background
+                ctx.fillStyle = "#c0c0c0"
+                ctx.fillRect(0, 0, chartWidth, chartHeight);
+
+                //Title
+                ctx.fillStyle = "black";
+                ctx.font = "bold 22px system-ui";
+                ctx.textAlign = "center";
+                ctx.fillText("Total Lifetime Print Hours by Printer", chartWidth / 2, 80);
+
+                //Axes
+                ctx.strokeStyle = "black";
+                ctx.lineWidth = 2;
+
+                //Y-axis
+                ctx.beginPath();
+                ctx.moveTo(marginLeft, marginTop);
+                ctx.lineTo(marginLeft, marginTop + plotHeight);
+                ctx.stroke();
+
+                //X-axis
+                ctx.beginPath();
+                ctx.moveTo(marginLeft, marginTop + plotHeight);
+                ctx.lineTo(marginLeft + plotWidth, marginTop + plotHeight);
+                ctx.stroke();
+
+                //Y-axis ticks and grid lines
+                const tickCount = 5;
+
+                ctx.font = "14px system-ui";
+                ctx.textAlign = "right";
+                ctx.textBaseline = "middle";
+
+                for (let i = 0; i<=tickCount; i++) {
+                    const value = roundedMax * i / tickCount;
+                    const y = marginTop + plotHeight - (value / roundedMax) * plotHeight;
+
                     ctx.fillStyle = "black";
-                    ctx.font = "16px Arial";
-                    ctx.fillText(values[i], x + 10, y - 10);
+                    ctx.fillText(Math.round(value), marginLeft - 10, y);
 
-                    // Draw labels
-                    ctx.fillText(labels[i], x + 20, canvas.height - 20);
+                    ctx.strokeStyle = "#999";
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    ctx.moveTo(marginLeft, y);
+                    ctx.lineTo(marginLeft + plotWidth, y);
+                    ctx.stroke();
                 }
 
-                // Draw axes
-                ctx.beginPath();
+                //Y-axis label
+                ctx.save();
+                ctx.translate(25, marginTop + (plotHeight / 2));
+                ctx.rotate(-Math.PI / 2);
+                ctx.fillStyle = "black";
+                ctx.font = "bold 16px system-ui";
+                ctx.textAlign = "center";
+                ctx.fillText("Total Hours", 0, 0);
+                ctx.restore();
 
-                // Y axis
-                ctx.moveTo(40, 20);
-                ctx.lineTo(40, canvas.height - 40);
+                //Printers bars
+                printers.forEach((p, i) => {
+                    const hours = Number(p.total_print_hours) || 0;
 
-                // X axis
-                ctx.lineTo(canvas.width - 20, canvas.height - 40);
+                    const x = marginLeft + i * (barWidth + barGap);
+                    const barHeight = (hours / roundedMax) * plotHeight;
+                    const y = marginTop + plotHeight - barHeight;
 
-                ctx.strokeStyle = "black";
-                ctx.stroke();
+                    ctx.fillStyle = "#4caf50";
+                    ctx.fillRect(x, y, barWidth, barHeight);
+
+                    ctx.strokeStyle = "#2e7d32";
+                    ctx.strokeRect(x, y, barWidth, barHeight);
+
+                    //Value above each bar
+                    ctx.fillStyle = "black";
+                    ctx.font = "bold 14px system-ui";
+                    ctx.textAlign = "center";
+                    ctx.textBaseline = "bottom";
+                    ctx.fillText(`${hours}`, x + (barWidth / 2), y - 5);
+
+                    //Printer name label X-axis
+                    ctx.save();
+                    ctx.translate(x + (barWidth / 2), marginTop + plotHeight + 15);
+                    ctx.rotate(-Math.PI / 4);
+                    ctx.fillStyle = "black";
+                    ctx.font = "13px system-ui";
+                    ctx.textAlign = "right";
+                    ctx.textBaseline = "middle";
+                    ctx.fillText(p.printer, 0, 0);
+                    ctx.restore();
+                });
             }
 
             function parseTimestamp(str) {
