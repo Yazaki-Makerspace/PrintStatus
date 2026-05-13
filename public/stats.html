@@ -126,7 +126,7 @@
                 const plotHeight = chartHeight - marginTop - marginBottom;
 
                 const printerNames = printers.map(p => p.printer);
-                const totalHours = pritners.map(p => Number(p.total_print_hours) || 0);
+                const totalHours = printers.map(p => Number(p.total_print_hours) || 0);
 
                 const maxHours = Math.max(...totalHours, 1);
                 const roundedMax = Math.ceil(maxHours / 10) * 10;
