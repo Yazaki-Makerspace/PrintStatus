@@ -129,7 +129,7 @@
                 const totalHours = printers.map(p => Number(p.total_print_hours) || 0);
 
                 const maxHours = Math.max(...totalHours, 1);
-                const roundedMax = Math.ceil(maxHours / 10) * 10;
+                const roundedMax = Math.ceil(maxHours / 200) * 200;
 
                 const barGap = 20;
                 const barWidth = Math.max(20, (plotWidth - barGap * (printers.length - 1)) / printers.length);
