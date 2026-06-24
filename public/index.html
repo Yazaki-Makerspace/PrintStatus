@@ -115,6 +115,24 @@
                 margin-top: 12px;
             }
 
+            .nav {
+                margin: 0 20px 20px 20px;
+            }
+
+            .nav a {
+                color: white;
+                background: #444;
+                text-decoration: none;
+                padding: 10px 16px;
+                border-radius: 8px;
+                margin-right: 10px;
+                display: inline-block;
+            }
+
+            .nav a:hover {
+                background: #666;
+            }
+
             /* Timer at the bottom */
             #refresh-timer {
                 position: fixed;
@@ -137,6 +155,11 @@
 
     <body>
         <h2>3D Lab Printer Status</h2>
+
+        <div class="nav">
+            <a href="index.html">Dashboard</a>
+            <a href="stats.html">Statistics</a>
+        </div>
         
         <div id="container"></div>
 
@@ -238,6 +261,14 @@
                 // If new data has been uploaded
                 lastTimeStamp = timestamp;
                 return true;
+            }
+
+            function getPrinterImage(printerName) {
+                if (printerName.includes("P1S")) return "P1S.jpg";
+                if (printerName.includes("A1-mini")) return "A1-mini.jpg";
+                if (printerName.includes("H2C")) return "H2C.jpg";
+                if (printerName.includes("X1E")) return "X1E.jpg";
+                return "P1S.jpg"; // fallback if unknown
             }
 
             function parseTimestamp(str) {
