@@ -17,6 +17,13 @@
                 font-size: 24px;
                 color: white;
             }
+            
+            .section-header {
+                margin-left: 20px;
+                margin-top: 30px;
+                font-size: 20px;
+                color: white;
+            }
 
             #container {
                 margin: 20px;
@@ -194,8 +201,17 @@
                 // : `Loading...`;
 
                 const c = document.getElementById("container");
-                c.innerHTML = `<div class="printer-row"></div>`;
-                const printerRow = c.querySelector(".printer-row");
+                c.innerHTML = `
+                    <div class="section-header">Fundamental</div>
+                    <div class="printer-row" id="row-fundamental"></div>
+                    
+                    <div class="section-header">Intermediate</div>
+                    <div class="printer-row" id="row-intermediate"></div>
+                    
+                    <div class="section-header">Advanced</div>
+                    <div class="printer-row" id="row-advanced"></div>
+                `;
+                //const printerRow = c.querySelector(".printer-row");
 
                 printers.forEach((p, i) => {
                     const progress = p.pct_progress / 100;
@@ -209,6 +225,18 @@
                     } else {
                         statusClass = "idle"; // IDLE + FINISH
                     }
+
+                    // Determine which section the printer belongs to based on printer_class
+                    let targetRowId = "row-fundamental"; // Default fallback
+                    if (p.printer_class) {
+                        const pClass = p.printer_class.toLowerCase();
+                        if (pClass === "Intermediate") {
+                            targetRowId = "row-intermediate";
+                        } else if (pClass === "Advanced") {
+                            targetRowId = "row-advanced";
+                        }
+                    }
+                    const printerRow = document.getElementById(targetRowId);
 
                     // const printerCardClass = status.toLowerCase(); // Dynamically add class based on status
                     // const printerRow = document.querySelector(`#${status.toLowerCase()}-section .printer-row`);
