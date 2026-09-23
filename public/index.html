@@ -230,12 +230,13 @@
                     let targetRowId = "row-fundamental"; // Default fallback
                     if (p.printer_class) {
                         const pClass = p.printer_class.toLowerCase();
-                        if (pClass === "Intermediate") {
+                        if (pClass === "intermediate") {
                             targetRowId = "row-intermediate";
-                        } else if (pClass === "Advanced") {
+                        } else if (pClass === "advanced") {
                             targetRowId = "row-advanced";
                         }
                     }
+                    console.log(`Printer ${p.printer}, is class ${pClass}`)
                     const printerRow = document.getElementById(targetRowId);
 
                     // const printerCardClass = status.toLowerCase(); // Dynamically add class based on status
